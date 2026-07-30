@@ -66,10 +66,23 @@ def run_evaluation():
         
     console.print(f"Loaded [bold]{len(qa_pairs)}[/bold] evaluation QA pairs for [cyan]{filename}[/cyan].\n")
 
+    # Check if Groq API is available and not rate-limited
+    use_groq = False
+    if settings.groq_api_key:
+        try:
+            temp_llm = get_llm("groq")
+            temp_llm.generate("Hello")
+            use_groq = True
+        except Exception as e:
+            if "rate_limit" in str(e).lower() or "429" in str(e) or "quota" in str(e).lower():
+                console.print("[yellow]Groq API is rate-limited or quota exceeded. Automatically falling back to Google Gemini for this run.[/yellow]\n")
+            else:
+                console.print(f"[yellow]Groq API check failed ({e}). Falling back to Google Gemini for this run.[/yellow]\n")
+
     # Initialize RAG components
     embeddings = GeminiEmbeddings()
     retriever = PostgresVectorRetriever(embeddings_service=embeddings)
-    llm = get_llm("groq" if settings.groq_api_key else "gemini")
+    llm = get_llm("groq" if use_groq else "gemini")
 
     questions = []
     contexts = []
@@ -104,7 +117,7 @@ def run_evaluation():
 
     # 5. Execute Ragas evaluation
     try:
-        evaluator = RagasEvaluator()
+        evaluator = RagasEvaluator(provider="groq" if use_groq else "gemini")
         with console.status("[bold green]Evaluating with Ragas (Google Gemini Judge)...", spinner="dots"):
             scores = evaluator.evaluate_pipeline(
                 questions=questions,

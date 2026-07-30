@@ -5,7 +5,7 @@ Provides functionality to evaluate the RAG pipeline using Ragas metrics,
 fully configured to use Google Gemini 2.5 Flash as the evaluation judge.
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import pandas as pd
 from datasets import Dataset
 
@@ -47,9 +47,12 @@ class RagasEvaluator:
        - Evaluated by generating questions back from the answer and measuring semantic similarity to the original query.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, provider: Optional[str] = None) -> None:
         """Initialize the evaluator and bind the configured LLM as the judge."""
-        if settings.groq_api_key:
+        # Use Groq if explicitly requested, or if no provider specified and key is present
+        use_groq = (provider == "groq") or (provider is None and bool(settings.groq_api_key))
+        
+        if use_groq:
             eval_llm = ChatOpenAI(
                 model=settings.groq_model,
                 openai_api_key=settings.groq_api_key,
@@ -74,7 +77,7 @@ class RagasEvaluator:
         
         # Wrap LangChain components for Ragas compatibility
         # We set bypass_n=True for Groq compatibility to avoid 'n must be at most 1' API errors
-        self.ragas_llm = LangchainLLMWrapper(eval_llm, bypass_n=True if settings.groq_api_key else False)
+        self.ragas_llm = LangchainLLMWrapper(eval_llm, bypass_n=True if use_groq else False)
         self.ragas_embeddings = LangchainEmbeddingsWrapper(eval_embeddings)
         
         # Bind the LLM and Embeddings to the metrics
