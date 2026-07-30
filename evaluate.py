@@ -89,12 +89,18 @@ def run_evaluation():
     contexts = []
     answers = []
     ground_truths = []
+    ids = []
+    categories = []
+    difficulties = []
 
     # 4. Generate LLM answers and collect contexts
     with console.status("[bold green]Executing Q&A over resume chunks...", spinner="dots"):
         for pair in qa_pairs:
             q = pair["question"]
             gt = pair["ground_truth"]
+            ids.append(pair.get("id"))
+            categories.append(pair.get("category"))
+            difficulties.append(pair.get("difficulty"))
             
             # Retrieve context chunks
             retrieved_docs = retriever.retrieve(q, resume_id=resume_id, top_k=settings.top_k)
@@ -137,7 +143,10 @@ def run_evaluation():
                 questions=questions,
                 contexts=contexts,
                 answers=answers,
-                ground_truths=ground_truths
+                ground_truths=ground_truths,
+                ids=ids,
+                categories=categories,
+                difficulties=difficulties
             )
     except Exception as e:
         console.print(f"[bold red]Evaluation failed:[/bold red] {e}")
@@ -161,7 +170,7 @@ def run_evaluation():
     
     console.print(score_table)
 
-    # Convert results to DataFrame to dump detailed outputs
+    # Convert results to DataFrame to dump detailed outputs and calculate metrics
     df = scores.to_pandas()
     
     # Map DataFrame columns to output keys to support newer Ragas versions
@@ -169,6 +178,60 @@ def run_evaluation():
     c_col = "retrieved_contexts" if "retrieved_contexts" in df.columns else "contexts"
     a_col = "response" if "response" in df.columns else "answer"
     gt_col = "reference" if "reference" in df.columns else "ground_truth"
+    
+    # Calculate category-wise averages
+    category_summary_md = ""
+    if "category" in df.columns:
+        metrics = ["faithfulness", "context_precision", "context_recall", "answer_relevancy"]
+        available_metrics = [m for m in metrics if m in df.columns]
+        if available_metrics:
+            import pandas as pd
+            cat_df = df.groupby("category")[available_metrics].mean()
+            cat_table = Table(title="Category-wise Performance Summary", style="magenta")
+            cat_table.add_column("Category", style="bold")
+            for m in available_metrics:
+                cat_table.add_column(m.replace("_", " ").title(), justify="right")
+            
+            for cat, r in cat_df.iterrows():
+                row_vals = [str(cat)] + [f"{r[m]:.4f}" if not pd.isna(r[m]) else "N/A" for m in available_metrics]
+                cat_table.add_row(*row_vals)
+            console.print(cat_table)
+            
+            # Build Markdown table
+            cat_md = ["## Category-wise Performance Summary", "| Category | " + " | ".join([m.replace("_", " ").title() for m in available_metrics]) + " |", "| :--- | " + " | ".join([":---:" for _ in available_metrics]) + " |"]
+            for cat, r in cat_df.iterrows():
+                cat_md.append(f"| **{cat}** | " + " | ".join([f"{r[m]:.4f}" if not pd.isna(r[m]) else "N/A" for m in available_metrics]) + " |")
+            category_summary_md = "\n".join(cat_md) + "\n\n"
+
+    # Calculate difficulty-wise averages
+    difficulty_summary_md = ""
+    if "difficulty" in df.columns:
+        metrics = ["faithfulness", "context_precision", "context_recall", "answer_relevancy"]
+        available_metrics = [m for m in metrics if m in df.columns]
+        if available_metrics:
+            import pandas as pd
+            diff_df = df.groupby("difficulty")[available_metrics].mean()
+            diff_order = ["easy", "medium", "hard"]
+            existing_diffs = [d for d in diff_order if d in diff_df.index] + [d for d in diff_df.index if d not in diff_order]
+            diff_df = diff_df.reindex(existing_diffs)
+            
+            diff_table = Table(title="Difficulty-wise Performance Summary", style="green")
+            diff_table.add_column("Difficulty", style="bold")
+            for m in available_metrics:
+                diff_table.add_column(m.replace("_", " ").title(), justify="right")
+            
+            for diff, r in diff_df.iterrows():
+                if pd.isna(diff): continue
+                row_vals = [str(diff)] + [f"{r[m]:.4f}" if not pd.isna(r[m]) else "N/A" for m in available_metrics]
+                diff_table.add_row(*row_vals)
+            console.print(diff_table)
+            
+            # Build Markdown table
+            diff_md = ["## Difficulty-wise Performance Summary", "| Difficulty | " + " | ".join([m.replace("_", " ").title() for m in available_metrics]) + " |", "| :--- | " + " | ".join([":---:" for _ in available_metrics]) + " |"]
+            for diff, r in diff_df.iterrows():
+                if pd.isna(diff): continue
+                diff_md.append(f"| **{diff}** | " + " | ".join([f"{r[m]:.4f}" if not pd.isna(r[m]) else "N/A" for m in available_metrics]) + " |")
+            difficulty_summary_md = "\n".join(diff_md) + "\n\n"
     
     # 7. Persist evaluation results
     reports_dir = PROJECT_ROOT / "evaluation" / "reports"
@@ -181,7 +244,11 @@ def run_evaluation():
     # Save detailed JSON report
     detailed_data = []
     for idx, row in df.iterrows():
+        import pandas as pd
         detailed_data.append({
+            "id": int(row["id"]) if "id" in df.columns and not pd.isna(row["id"]) else idx + 1,
+            "category": row["category"] if "category" in df.columns and not pd.isna(row["category"]) else None,
+            "difficulty": row["difficulty"] if "difficulty" in df.columns and not pd.isna(row["difficulty"]) else None,
             "question": row[q_col],
             "contexts": row[c_col],
             "answer": row[a_col],
@@ -218,11 +285,23 @@ def run_evaluation():
         f"| **Context Recall** | {scores_dict.get('context_recall', 0.0):.4f} | Measures if the retriever fetched all necessary info to match the ground truth. |",
         f"| **Answer Relevancy** | {scores_dict.get('answer_relevancy', 0.0):.4f} | Measures if the answer directly addresses the question. |",
         f"",
-        f"## Detailed Row Analysis"
     ]
+    if category_summary_md:
+        md_lines.append(category_summary_md)
+    if difficulty_summary_md:
+        md_lines.append(difficulty_summary_md)
+        
+    md_lines.append("## Detailed Row Analysis")
     
     for idx, row in df.iterrows():
-        md_lines.append(f"### Question {idx + 1}: {row[q_col]}")
+        import pandas as pd
+        q_id = int(row["id"]) if "id" in df.columns and not pd.isna(row["id"]) else idx + 1
+        category = row["category"] if "category" in df.columns and not pd.isna(row["category"]) else "N/A"
+        difficulty = row["difficulty"] if "difficulty" in df.columns and not pd.isna(row["difficulty"]) else "N/A"
+        
+        md_lines.append(f"### Question {q_id}: {row[q_col]}")
+        md_lines.append(f"- **Category**: {category}")
+        md_lines.append(f"- **Difficulty**: {difficulty}")
         md_lines.append(f"- **Ground Truth**: {row[gt_col]}")
         md_lines.append(f"- **Generated Answer**: {row[a_col]}")
         md_lines.append(f"- **Scores**:")

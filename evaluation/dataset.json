@@ -1,18 +1,142 @@
 [
   {
-    "question": "How many years of experience does Alice Developer have?",
-    "ground_truth": "Alice Developer has 6+ years of experience in software engineering, specializing in backend architectures, database schemas, and AI integrations."
+    "id": 1,
+    "category": "experience",
+    "difficulty": "easy",
+    "question": "How many years of software engineering experience does Alice Developer have?",
+    "ground_truth": "Alice Developer has over 6 years of software engineering experience specializing in backend architectures, database design, and AI integrations."
   },
   {
-    "question": "What databases and cloud platforms is Alice Developer proficient in?",
-    "ground_truth": "Alice Developer is proficient in PostgreSQL, pgvector, Docker, and AWS (including S3, EC2, and RDS)."
+    "id": 2,
+    "category": "skills",
+    "difficulty": "easy",
+    "question": "What programming languages does Alice Developer know?",
+    "ground_truth": "The resume mentions Python, JavaScript, and TypeScript."
   },
   {
-    "question": "What RAG metrics did Alice Developer configure for the internal HR system?",
-    "ground_truth": "Alice Developer configured Ragas metrics to monitor faithfulness, answer relevance, and context recall for the RAG pipeline she built."
+    "id": 3,
+    "category": "database",
+    "difficulty": "easy",
+    "question": "Which databases has Alice Developer worked with?",
+    "ground_truth": "Alice Developer has experience with PostgreSQL and pgvector."
   },
   {
-    "question": "What degree did Alice Developer earn and from where?",
+    "id": 4,
+    "category": "cloud",
+    "difficulty": "easy",
+    "question": "Which AWS services are mentioned in the resume?",
+    "ground_truth": "The resume mentions Amazon S3, EC2, and RDS."
+  },
+  {
+    "id": 5,
+    "category": "education",
+    "difficulty": "easy",
+    "question": "What degree did Alice Developer earn and from which university?",
     "ground_truth": "Alice Developer earned a Bachelor of Science in Computer Science from State University between 2016 and 2020."
+  },
+  {
+    "id": 6,
+    "category": "projects",
+    "difficulty": "medium",
+    "question": "What AI-related project did Alice Developer build?",
+    "ground_truth": "Alice Developer built an internal HR Resume Intelligence system using Retrieval-Augmented Generation (RAG), PostgreSQL with pgvector, Gemini, and Ragas."
+  },
+  {
+    "id": 7,
+    "category": "reasoning",
+    "difficulty": "medium",
+    "question": "Why is Alice Developer a good fit for a backend engineering role?",
+    "ground_truth": "Alice Developer has over six years of backend experience, expertise in PostgreSQL, Docker, AWS, AI integrations, scalable APIs, and modern software architecture."
+  },
+  {
+    "id": 8,
+    "category": "summary",
+    "difficulty": "medium",
+    "question": "Summarize Alice Developer's professional profile.",
+    "ground_truth": "Alice Developer is a backend software engineer with more than six years of experience building scalable systems, PostgreSQL databases, cloud-native applications, and AI-powered solutions using Retrieval-Augmented Generation."
+  },
+  {
+    "id": 9,
+    "category": "retrieval",
+    "difficulty": "medium",
+    "question": "Which technologies were used together in the Resume Intelligence project?",
+    "ground_truth": "The project used Python, LangChain, Gemini, PostgreSQL with pgvector, Docker, SQLAlchemy, and Ragas."
+  },
+  {
+    "id": 10,
+    "category": "evaluation",
+    "difficulty": "medium",
+    "question": "Which RAG evaluation metrics were implemented?",
+    "ground_truth": "The project evaluates Faithfulness, Context Precision, Context Recall, and Answer Relevancy using Ragas."
+  },
+  {
+    "id": 11,
+    "category": "multi_hop",
+    "difficulty": "hard",
+    "question": "Which technologies demonstrate Alice Developer's experience with AI and cloud infrastructure?",
+    "ground_truth": "The resume mentions Gemini, LangChain, RAG, PostgreSQL with pgvector, Docker, AWS S3, EC2, and RDS."
+  },
+  {
+    "id": 12,
+    "category": "comparison",
+    "difficulty": "hard",
+    "question": "Compare Alice Developer's database experience with cloud experience.",
+    "ground_truth": "Alice Developer has experience with PostgreSQL and pgvector for databases, while cloud experience includes AWS services such as S3, EC2, and RDS."
+  },
+  {
+    "id": 13,
+    "category": "negative",
+    "difficulty": "easy",
+    "question": "Does Alice Developer have Kubernetes experience?",
+    "ground_truth": "The resume does not mention Kubernetes experience."
+  },
+  {
+    "id": 14,
+    "category": "negative",
+    "difficulty": "easy",
+    "question": "Has Alice Developer worked with MongoDB?",
+    "ground_truth": "The resume does not mention MongoDB."
+  },
+  {
+    "id": 15,
+    "category": "negative",
+    "difficulty": "medium",
+    "question": "Is there any evidence that Alice Developer has experience with Azure?",
+    "ground_truth": "No. The resume does not mention Azure."
+  },
+  {
+    "id": 16,
+    "category": "interview",
+    "difficulty": "hard",
+    "question": "Generate three interview questions for Alice Developer based on the resume.",
+    "ground_truth": "Appropriate interview questions should focus on PostgreSQL optimization, Retrieval-Augmented Generation architecture, and deploying scalable backend applications on AWS."
+  },
+  {
+    "id": 17,
+    "category": "timeline",
+    "difficulty": "medium",
+    "question": "What is Alice Developer's most recent professional experience?",
+    "ground_truth": "The most recent role described in the resume is Software Engineer focused on backend systems, AI integrations, and cloud-native application development."
+  },
+  {
+    "id": 18,
+    "category": "skills",
+    "difficulty": "medium",
+    "question": "List all AI and machine learning technologies mentioned in the resume.",
+    "ground_truth": "The resume mentions Retrieval-Augmented Generation (RAG), LangChain, Gemini, embeddings, vector search, pgvector, and Ragas."
+  },
+  {
+    "id": 19,
+    "category": "jd_match",
+    "difficulty": "hard",
+    "question": "Would Alice Developer be suitable for a Senior Backend AI Engineer position? Explain.",
+    "ground_truth": "Yes. The resume demonstrates strong backend engineering skills, PostgreSQL expertise, cloud experience, AI integrations, Retrieval-Augmented Generation knowledge, and scalable system design."
+  },
+  {
+    "id": 20,
+    "category": "hallucination",
+    "difficulty": "hard",
+    "question": "What certifications in Google Cloud does Alice Developer hold?",
+    "ground_truth": "The resume does not mention any Google Cloud certifications."
   }
 ]
