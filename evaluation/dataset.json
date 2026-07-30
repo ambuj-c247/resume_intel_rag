@@ -1,0 +1,18 @@
+[
+  {
+    "question": "How many years of experience does Alice Developer have?",
+    "ground_truth": "Alice Developer has 6+ years of experience in software engineering, specializing in backend architectures, database schemas, and AI integrations."
+  },
+  {
+    "question": "What databases and cloud platforms is Alice Developer proficient in?",
+    "ground_truth": "Alice Developer is proficient in PostgreSQL, pgvector, Docker, and AWS (including S3, EC2, and RDS)."
+  },
+  {
+    "question": "What RAG metrics did Alice Developer configure for the internal HR system?",
+    "ground_truth": "Alice Developer configured Ragas metrics to monitor faithfulness, answer relevance, and context recall for the RAG pipeline she built."
+  },
+  {
+    "question": "What degree did Alice Developer earn and from where?",
+    "ground_truth": "Alice Developer earned a Bachelor of Science in Computer Science from State University between 2016 and 2020."
+  }
+]
