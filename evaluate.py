@@ -71,11 +71,12 @@ def run_evaluation():
     if settings.groq_api_key:
         try:
             temp_llm = get_llm("groq")
-            temp_llm.generate("Hello")
+            # Generate a larger prompt to simulate actual RAG size and verify token quota
+            temp_llm.generate("Hello " * 1000)
             use_groq = True
         except Exception as e:
             if "rate_limit" in str(e).lower() or "429" in str(e) or "quota" in str(e).lower():
-                console.print("[yellow]Groq API is rate-limited or quota exceeded. Automatically falling back to Google Gemini for this run.[/yellow]\n")
+                console.print("[yellow]Groq API token limit is near exhaustion or exceeded. Automatically falling back to Google Gemini for this run.[/yellow]\n")
             else:
                 console.print(f"[yellow]Groq API check failed ({e}). Falling back to Google Gemini for this run.[/yellow]\n")
 
@@ -103,10 +104,23 @@ def run_evaluation():
             context_str = "\n\n".join([f"--- Chunk {i+1} ---\n{t}" for i, t in enumerate(retrieved_texts)])
             prompt = templates.RAG_PROMPT_TEMPLATE.format(context=context_str, question=q)
             
-            answer = llm.generate(
-                prompt=prompt,
-                system_instruction=templates.RAG_SYSTEM_INSTRUCTION
-            )
+            try:
+                answer = llm.generate(
+                    prompt=prompt,
+                    system_instruction=templates.RAG_SYSTEM_INSTRUCTION
+                )
+            except Exception as e:
+                # If using Groq and rate limited, dynamically switch to Gemini and retry
+                if use_groq and ("rate_limit" in str(e).lower() or "429" in str(e) or "quota" in str(e).lower()):
+                    console.print("[yellow]Groq API rate limit hit during generation. Falling back to Google Gemini...[/yellow]")
+                    use_groq = False
+                    llm = get_llm("gemini")
+                    answer = llm.generate(
+                        prompt=prompt,
+                        system_instruction=templates.RAG_SYSTEM_INSTRUCTION
+                    )
+                else:
+                    raise e
             
             questions.append(q)
             contexts.append(retrieved_texts)
